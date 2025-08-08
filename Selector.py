@@ -100,7 +100,7 @@ def bbi_deriv_uptrend(
         seg = bbi.iloc[-w:]                # 区间 [T-w+1, T]
         norm = seg / seg.iloc[0]           # 归一化
         diffs = np.diff(norm.values)       # 一阶差分
-        if np.quantile(diffs, q_threshold) >= 0:
+        if np.quantile(diffs, 1-q_threshold) <= 0:
             return True
     return False
 
@@ -205,7 +205,7 @@ class BBIKDJSelector:
 
         # 3. MACD：DIF > 0
         hist["DIF"] = compute_dif(hist)
-        return hist["DIF"].iloc[-1] > 0
+        return hist["DIF"].iloc[-1] < 0
 
     # ---------- 多股票批量 ---------- #
     def select(

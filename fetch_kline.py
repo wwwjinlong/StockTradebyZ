@@ -15,7 +15,7 @@ from typing import List, Optional
 import akshare as ak
 import pandas as pd
 import tushare as ts
-from mootdx.quotes import Quotes
+# from mootdx.quotes import Quotes
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore")
 # --------------------------- 全局日志配置 --------------------------- #
 LOG_FILE = Path("fetch.log")
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
@@ -160,7 +160,7 @@ def _get_kline_akshare(code: str, start: str, end: str, adjust: str) -> pd.DataF
             break
         except Exception as e:
             logger.warning("AKShare 拉取 %s 失败(%d/3): %s", code, attempt, e)
-            time.sleep(random.uniform(1, 2) * attempt)
+            time.sleep(random.uniform(3, 10) * attempt)
     else:
         return pd.DataFrame()
 
@@ -180,27 +180,27 @@ def _get_kline_akshare(code: str, start: str, end: str, adjust: str) -> pd.DataF
 
 # ---------- Mootdx 工具函数 ---------- #
 
-def _get_kline_mootdx(code: str, start: str, end: str, adjust: str, freq_code: int) -> pd.DataFrame:    
-    symbol = code.zfill(6)
-    freq = _FREQ_MAP.get(freq_code, "day")
-    client = Quotes.factory(market="std")
-    try:
-        df = client.bars(symbol=symbol, frequency=freq, adjust=adjust or None)
-    except Exception as e:
-        logger.warning("Mootdx 拉取 %s 失败: %s", code, e)
-        return pd.DataFrame()
-    if df is None or df.empty:
-        return pd.DataFrame()
+# def _get_kline_mootdx(code: str, start: str, end: str, adjust: str, freq_code: int) -> pd.DataFrame:    
+#     symbol = code.zfill(6)
+#     freq = _FREQ_MAP.get(freq_code, "day")
+#     client = Quotes.factory(market="std")
+#     try:
+#         df = client.bars(symbol=symbol, frequency=freq, adjust=adjust or None)
+#     except Exception as e:
+#         logger.warning("Mootdx 拉取 %s 失败: %s", code, e)
+#         return pd.DataFrame()
+#     if df is None or df.empty:
+#         return pd.DataFrame()
     
-    df = df.rename(
-        columns={"datetime": "date", "open": "open", "high": "high", "low": "low", "close": "close", "vol": "volume"}
-    )
-    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
-    start_ts = pd.to_datetime(start, format="%Y%m%d")
-    end_ts = pd.to_datetime(end, format="%Y%m%d")
-    df = df[(df["date"].dt.date >= start_ts.date()) & (df["date"].dt.date <= end_ts.date())].copy()    
-    df = df.sort_values("date").reset_index(drop=True)    
-    return df[["date", "open", "close", "high", "low", "volume"]]
+#     df = df.rename(
+#         columns={"datetime": "date", "open": "open", "high": "high", "low": "low", "close": "close", "vol": "volume"}
+#     )
+#     df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+#     start_ts = pd.to_datetime(start, format="%Y%m%d")
+#     end_ts = pd.to_datetime(end, format="%Y%m%d")
+#     df = df[(df["date"].dt.date >= start_ts.date()) & (df["date"].dt.date <= end_ts.date())].copy()    
+#     df = df.sort_values("date").reset_index(drop=True)    
+#     return df[["date", "open", "close", "high", "low", "volume"]]
 
 # ---------- 通用接口 ---------- #
 
@@ -216,8 +216,8 @@ def get_kline(
         return _get_kline_tushare(code, start, end, adjust)
     elif datasource == "akshare":
         return _get_kline_akshare(code, start, end, adjust)
-    elif datasource == "mootdx":        
-        return _get_kline_mootdx(code, start, end, adjust, freq_code)
+    # elif datasource == "mootdx":        
+    #     return _get_kline_mootdx(code, start, end, adjust, freq_code)
     else:
         raise ValueError("datasource 仅支持 'tushare', 'akshare' 或 'mootdx'")
 
@@ -247,10 +247,11 @@ def fetch_one(
 
     # 增量更新：若本地已有数据则从最后一天开始
     if incremental and csv_path.exists():
+        logger.info("%s 增量更新", code)
         try:
             existing = pd.read_csv(csv_path, parse_dates=["date"])
             last_date = existing["date"].max()
-            if last_date.date() > pd.to_datetime(end, format="%Y%m%d").date():
+            if last_date.date() >= pd.to_datetime(end, format="%Y%m%d").date():
                 logger.debug("%s 已是最新，无需更新", code)
                 return
             start = last_date.strftime("%Y%m%d")
@@ -281,7 +282,7 @@ def fetch_one(
             break
         except Exception:
             logger.exception("%s 第 %d 次抓取失败", code, attempt)
-            time.sleep(random.uniform(1, 3) * attempt)  # 指数退避
+            time.sleep(random.uniform(3, 10) * attempt)  # 指数退避
     else:
         logger.error("%s 三次抓取均失败，已跳过！", code)
 
@@ -303,7 +304,7 @@ def main():
 
     # ---------- Token 处理 ---------- #
     if args.datasource == "tushare":
-        ts_token = " "  # 在这里补充token
+        ts_token = "7d8666db7883feea4c1881a62cd23f9e4e520f31d8cd83a333e118b7"  # 在这里补充token
         ts.set_token(ts_token)
         global pro
         pro = ts.pro_api()

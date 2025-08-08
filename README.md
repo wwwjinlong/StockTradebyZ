@@ -6,28 +6,26 @@
 
 ## 目录
 
-* [项目简介](#项目简介)
-* [快速上手](#快速上手)
-
-  * [安装依赖](#安装依赖)
-  * [Tushare Token（可选）](#tushare-token可选)
-  * [Mootdx 运行前置步骤](#mootdx-运行前置步骤)
-  * [下载历史行情](#下载历史行情)
-  * [运行选股](#运行选股)
-* [参数说明](#参数说明)
-
-  * [`fetch_kline.py`](#fetch_klinepy)
-
-    * [K 线频率编码](#k-线频率编码)
-  * [`select_stock.py`](#select_stockpy)
-  * [内置策略参数](#内置策略参数)
-
-    * [1. BBIKDJSelector（少妇战法）](#1-bbikdjselector少妇战法)
-    * [2. PeakKDJSelector（填坑战法）](#2-peakkdjselector填坑战法)
-    * [3. BBIShortLongSelector（补票战法）](#3-bbishortlongselector补票战法)
-    * [4. BreakoutVolumeKDJSelector（TePu 战法）](#4-breakoutvolumekdjselectortepu-战法)
-* [项目结构](#项目结构)
-* [免责声明](#免责声明)
+- [Z哥战法的Python实现](#z哥战法的python实现)
+  - [目录](#目录)
+  - [项目简介](#项目简介)
+  - [快速上手](#快速上手)
+    - [安装依赖](#安装依赖)
+    - [Tushare Token（可选）](#tushare-token可选)
+    - [Mootdx 运行前置步骤](#mootdx-运行前置步骤)
+    - [下载历史行情](#下载历史行情)
+    - [运行选股](#运行选股)
+  - [参数说明](#参数说明)
+    - [`fetch_kline.py`](#fetch_klinepy)
+      - [K 线频率编码](#k-线频率编码)
+    - [`select_stock.py`](#select_stockpy)
+    - [内置策略参数](#内置策略参数)
+      - [1. BBIKDJSelector（少妇战法）](#1-bbikdjselector少妇战法)
+      - [2. PeakKDJSelector（填坑战法）](#2-peakkdjselector填坑战法)
+      - [3. BBIShortLongSelector（补票战法）](#3-bbishortlongselector补票战法)
+      - [4. BreakoutVolumeKDJSelector（TePu 战法）](#4-breakoutvolumekdjselectortepu-战法)
+  - [项目结构](#项目结构)
+  - [免责声明](#免责声明)
 
 ---
 
@@ -109,6 +107,11 @@ python fetch_kline.py \
   --end today              # 结束日期
   --out ./data             # 输出目录
   --workers 10             # 并发线程数
+
+
+python fetch_kline.py --datasource akshare  --start 20210101 --end today --out ./data  --workers 1
+
+python fetch_kline.py --datasource tushare  --start 20210101 --end today --out ./data  --workers 1
 ```
 
 *首跑* 下载完整历史；之后脚本会 **增量更新**。
@@ -120,6 +123,8 @@ python select_stock.py \
   --data-dir ./data        # CSV 行情目录
   --config ./configs.json  # Selector 配置
   --date 2025-07-02        # 交易日（缺省 = 最新）
+
+python select_stock.py --data-dir ./data  --config ./configs.json
 ```
 
 示例输出：
