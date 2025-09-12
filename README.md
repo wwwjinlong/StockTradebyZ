@@ -109,9 +109,9 @@ python fetch_kline.py \
   --workers 10             # 并发线程数
 
 
-python fetch_kline.py --datasource akshare  --start 20210101 --end today --out ./data  --workers 1
+python fetch_kline.py --datasource akshare  --start 20210101 --out ./data  --workers 1
 
-python fetch_kline.py --datasource tushare  --start 20210101 --end today --out ./data  --workers 1
+python fetch_kline.py --datasource tushare --min-mktcap 5e2  --start 20210101  --out ./data  --workers 1
 ```
 
 *首跑* 下载完整历史；之后脚本会 **增量更新**。
